@@ -1,5 +1,10 @@
 # PPC COA Database — Pushing Peptides Community
 
+Design: EloraTZP infographic language (his standing default) — dark default,
+amber → orange → cyan gradients, ambient dots, PUSHING P watermark, gradient
+stat tiles and buttons; soft-gray light theme. Restyled from the original
+restrained theme at his direction on 2026-10-24.
+
 A community-submitted Certificate of Analysis (COA) database: members upload
 laboratory reports they obtained independently, administrators review them in
 a private queue, and approved records become publicly browsable, searchable,
@@ -66,6 +71,13 @@ python3 -m http.server 8000
 ```
 
 ## SETUP — connect the live backend (one-time)
+
+> **Decision (2026-10-24): use a separate Supabase project for this system.**
+> The poll system has its own project. Do NOT run both systems' schemas into
+> one project: both create a `public.admins` table with incompatible shapes
+> (poll: `user_id`/`role`; COA: `id`/`email`), which would break admin access
+> for one of them. Two free-tier projects, each README followed verbatim, is
+> the simplest path — no code changes needed.
 
 1. **Create a Supabase project** at https://supabase.com (free tier).
    Note the project URL and the **anon public key** (Settings → API).

@@ -1,22 +1,41 @@
-/* PPC COA Database — restrained professional theme, dark default */
+/* PPC COA Database — EloraTZP infographic language: dark default,
+   amber → orange → cyan gradients, ambient dots, PUSHING P watermark.
+   Light theme stays a soft neutral gray, per his standing rule. */
 :root, [data-theme="dark"] {
-  --bg: #0b0f14; --bg2: #0e1319; --panel: #12181f; --panel2: #161e27;
+  --bg: #090b0f; --bg2: #0d1117; --panel: #12181f; --panel2: #161e27;
   --line: #223041; --line2: #2c3e55;
   --ink: #e8eef5; --ink2: #aebdcb; --ink3: #7d8fa3;
-  --accent: #5aa9e6; --accent-ink: #0b1520;
+  --accent: #f59e0b; --accent-ink: #1a1005;
+  --grad: linear-gradient(100deg, #fbbf24 0%, #fb923c 45%, #22d3ee 100%);
+  --grad-text: linear-gradient(100deg, #fbbf24 10%, #fb923c 50%, #22d3ee 90%);
   --ok: #3fb97c; --warn: #d9a441; --bad: #e06c5f;
   --chip: #1a2431; --input: #0d1218;
   --shadow: 0 10px 30px rgba(0,0,0,.35);
 }
 [data-theme="light"] {
-  --bg: #f2f5f8; --bg2: #e9eef3; --panel: #ffffff; --panel2: #f6f9fb;
+  --bg: #eceff2; --bg2: #e2e7ec; --panel: #ffffff; --panel2: #f6f9fb;
   --line: #cfdae4; --line2: #b6c6d4;
   --ink: #16222e; --ink2: #43536a; --ink3: #68798d;
-  --accent: #1668b4; --accent-ink: #ffffff;
+  --accent: #b45309; --accent-ink: #ffffff;
+  --grad: linear-gradient(100deg, #d97706 0%, #ea580c 45%, #0891b2 100%);
+  --grad-text: linear-gradient(100deg, #d97706 10%, #ea580c 50%, #0891b2 90%);
   --ok: #177a49; --warn: #9a6b14; --bad: #b3372c;
   --chip: #e7eef5; --input: #ffffff;
   --shadow: 0 10px 30px rgba(22,40,60,.10);
 }
+/* ambient background layers (Elora-style) — fixed, behind everything */
+#bg-dots { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+#bgtext {
+  position: fixed; inset: -10% -20%; z-index: 0; pointer-events: none; overflow: hidden;
+  display: flex; flex-direction: column; justify-content: space-around;
+  transform: rotate(-14deg); opacity: .055; user-select: none;
+}
+#bgtext span {
+  white-space: nowrap; font-weight: 800; font-size: clamp(64px, 9vw, 130px); line-height: 1;
+  background: var(--grad-text); -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+[data-theme="light"] #bgtext { opacity: .05; }
+.app, .site-footer { position: relative; z-index: 1; }
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 body {
@@ -38,10 +57,10 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .main-nav { display: flex; gap: 4px; margin-left: auto; flex-wrap: wrap; }
 .main-nav a { color: var(--ink2); text-decoration: none; padding: 8px 12px; border-radius: 8px; font-weight: 600; font-size: 15px; }
 .main-nav a:hover { color: var(--ink); background: var(--chip); }
-.main-nav a.active { color: var(--ink); background: var(--chip); box-shadow: inset 0 0 0 1px var(--line2); }
+.main-nav a.active { color: var(--ink); background: var(--chip); box-shadow: inset 0 0 0 1px var(--line2), inset 0 -2px 0 var(--accent); }
 .theme-toggle { display: flex; align-items: center; gap: 9px; background: none; border: 1px solid var(--line2); border-radius: 999px; padding: 6px 12px 6px 7px; cursor: pointer; color: var(--ink2); font-weight: 600; font-size: 14px; }
 .tt-track { width: 36px; height: 20px; border-radius: 999px; background: var(--chip); box-shadow: inset 0 0 0 1px var(--line2); position: relative; flex: none; }
-.tt-thumb { position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: var(--accent); transition: left .18s ease; }
+.tt-thumb { position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: var(--grad); transition: left .18s ease; }
 [data-theme="light"] .tt-thumb { left: 18px; }
 
 .demo-banner { background: #3a2c10; color: #f3d492; border-bottom: 1px solid #6b5518; padding: 10px 20px; font-size: 14px; text-align: center; }
@@ -53,13 +72,17 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .foot-small { color: var(--ink3); font-size: 13px; }
 
 /* generic */
-h1 { font-size: 32px; line-height: 1.2; margin: 0 0 10px; }
+h1 {
+  font-size: 32px; line-height: 1.2; margin: 0 0 10px;
+  background: var(--grad-text); -webkit-background-clip: text; background-clip: text;
+  color: transparent; -webkit-text-fill-color: transparent;
+}
 h2 { font-size: 22px; margin: 30px 0 12px; }
 h3 { font-size: 17px; margin: 0 0 8px; }
 .lede { color: var(--ink2); font-size: 17px; max-width: 68ch; }
 .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 20px; box-shadow: var(--shadow); }
 .panel + .panel { margin-top: 18px; }
-.btn { display: inline-flex; align-items: center; gap: 8px; background: var(--accent); color: var(--accent-ink); border: 1px solid transparent; border-radius: 10px; padding: 11px 18px; font-weight: 700; text-decoration: none; cursor: pointer; font-size: 15px; }
+.btn { display: inline-flex; align-items: center; gap: 8px; background: var(--grad); color: var(--accent-ink); border: 1px solid transparent; border-radius: 10px; padding: 11px 18px; font-weight: 700; text-decoration: none; cursor: pointer; font-size: 15px; }
 .btn:hover { filter: brightness(1.08); }
 .btn.secondary { background: var(--chip); color: var(--ink); border-color: var(--line2); }
 .btn.danger { background: var(--bad); color: #fff; }
@@ -74,8 +97,15 @@ h3 { font-size: 17px; margin: 0 0 8px; }
 /* home */
 .hero { padding: 34px 0 6px; }
 .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin: 26px 0 6px; }
-.stat { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
-.stat .num { font-size: 30px; font-weight: 800; line-height: 1.1; }
+.stat {
+  background: linear-gradient(var(--panel), var(--panel)) padding-box, var(--grad) border-box;
+  border: 1px solid transparent; border-radius: 14px; padding: 18px;
+}
+.stat .num {
+  font-size: 30px; font-weight: 800; line-height: 1.1;
+  background: var(--grad-text); -webkit-background-clip: text; background-clip: text;
+  color: transparent; -webkit-text-fill-color: transparent;
+}
 .stat .lbl { color: var(--ink3); font-size: 13.5px; font-weight: 600; letter-spacing: .02em; }
 .searchbar { display: flex; gap: 10px; margin-top: 22px; flex-wrap: wrap; }
 .searchbar input { flex: 1 1 320px; }

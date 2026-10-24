@@ -687,3 +687,41 @@ async function router() {
 }
 window.addEventListener("hashchange", router);
 router();
+
+/* ── Ambient dots (Elora-style background) ─────────────────────────────── */
+(function () {
+  const cv = document.getElementById("bg-dots");
+  if (!cv) return;
+  const ctx = cv.getContext("2d");
+  const COLORS = ["#fbbf24", "#fb923c", "#22d3ee"];
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let dots = [], raf = 0;
+  function resize() { cv.width = window.innerWidth; cv.height = window.innerHeight; }
+  function seed() {
+    dots = Array.from({ length: 140 }, () => ({
+      x: Math.random() * cv.width, y: Math.random() * cv.height,
+      r: 1.4 + Math.random() * 2.2, c: COLORS[(Math.random() * 3) | 0],
+      p: Math.random() * Math.PI * 2, s: 0.3 + Math.random() * 0.7
+    }));
+  }
+  function draw(t) {
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    for (const d of dots) {
+      ctx.globalAlpha = 0.30 + 0.35 * (0.5 + 0.5 * Math.sin((t / 900) * d.s + d.p));
+      ctx.fillStyle = d.c;
+      ctx.beginPath(); ctx.arc(d.x, d.y, d.r, 0, 7); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+  function loop(t) { draw(t); if (!document.hidden) raf = requestAnimationFrame(loop); }
+  function start() {
+    resize(); seed();
+    cancelAnimationFrame(raf);
+    if (reduced) draw(0); else raf = requestAnimationFrame(loop);
+  }
+  window.addEventListener("resize", start);
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden && !reduced) { cancelAnimationFrame(raf); raf = requestAnimationFrame(loop); }
+  });
+  start();
+})();
