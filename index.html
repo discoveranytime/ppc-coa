@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PPC COA Database — Pushing Peptides Community</title>
+<meta name="description" content="A community-submitted database of Certificates of Analysis (COAs) from independent laboratory testing, collected and reviewed by the Pushing Peptides Community.">
+<script>
+  // Apply the saved theme before first paint (no flash). Default: dark.
+  try { document.documentElement.dataset.theme = localStorage.getItem('ppc-theme') || 'dark'; }
+  catch (e) { document.documentElement.dataset.theme = 'dark'; }
+</script>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="header-inner">
+    <a class="wordmark" href="#/">
+      <span class="wm-badge">PPC</span>
+      <span class="wm-text">COA Database<small>Pushing Peptides Community</small></span>
+    </a>
+    <nav class="main-nav" aria-label="Main navigation">
+      <a href="#/" data-nav="home">Home</a>
+      <a href="#/browse" data-nav="browse">Browse COAs</a>
+      <a href="#/submit" data-nav="submit">Submit a COA</a>
+      <a href="#/admin" data-nav="admin">Admin</a>
+    </nav>
+    <button id="themeToggle" class="theme-toggle" type="button" role="switch" aria-checked="true" aria-label="Toggle dark / light theme">
+      <span class="tt-track"><span class="tt-thumb"></span></span><span class="tt-label">Dark</span>
+    </button>
+  </div>
+</header>
+
+<div id="demoBanner" class="demo-banner" hidden>
+  <strong>Demo mode.</strong> No backend is connected yet, so records are stored only in this browser and the demo admin password is the one documented in the README.
+  Connect Supabase (see <em>SETUP</em> in the README) for the live, shared database. Demo data never mixes with production data.
+</div>
+
+<main id="app" class="app" tabindex="-1"></main>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <p><strong>About this database.</strong> Every record here was submitted by a community member or added from PPC's published educational material. PPC does not test products itself, and a record's presence here does not mean PPC verified the document, the laboratory, the sample, or the contents of any vial.</p>
+    <p class="foot-small">Pushing Peptides Community (PPC) · COA Database · This site is a separate resource from the Klixey community platform; the two are not connected.</p>
+  </div>
+</footer>
+
+<script src="config.js"></script>
+<script src="seed.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

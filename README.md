@@ -1,0 +1,137 @@
+# PPC COA Database — Pushing Peptides Community
+
+A community-submitted Certificate of Analysis (COA) database: members upload
+laboratory reports they obtained independently, administrators review them in
+a private queue, and approved records become publicly browsable, searchable,
+and downloadable.
+
+**Honesty rules baked into the design:**
+- A record's presence here does **not** mean PPC verified the document, the
+  laboratory, the sample, or any vial's contents.
+- Statuses are exactly four: **Community-submitted → Pending review →
+  Reviewed**; **Independently confirmed** appears only when an admin documents
+  a verification process that actually happened (and writes it on the record).
+- Statistics on the home page are computed from the database, never hardcoded.
+- Demo-mode data is clearly banner-labelled and never mixes with production.
+
+## Tech choices (Stage 1 — architecture)
+
+| Concern | Choice | Why |
+|---|---|---|
+| Frontend | Vanilla HTML/CSS/JS, hash routing | No build step, no framework churn; a non-developer can read and edit it. Hash routing works on GitHub Pages with zero server config. |
+| Backend | **Supabase** (Postgres + Storage + Auth) | Free tier covers this scale (500 MB DB, 1 GB storage, 50k monthly users). Database, file storage, auth, and row-level security in one service. |
+| Hosting | **GitHub Pages** | Free, deploys from this repo's `main` branch. GitHub Pages serves static files only — that is exactly why Supabase handles data/auth/files. |
+| Costs | $0 to start | Supabase free tier + GitHub Pages. Pay only if you outgrow the free tier (Supabase Pro is $25/mo at time of writing). |
+
+**GitHub Pages limitation, stated plainly:** Pages cannot run a backend. That is
+why uploads, the review queue, and admin permissions live in Supabase, with
+rules enforced by database policies — not by hiding buttons. The frontend
+alone (no Supabase) runs in **demo mode**: records live in the visitor's own
+browser, which is fine for testing but is not a shared database.
+
+## Project structure
+
+```
+index.html          SPA shell (header, nav, theme toggle, footer)
+styles.css          Dark (default) + light themes, responsive layout
+config.js           Supabase URL + anon key (EMPTY = demo mode)
+seed.js             3 real seed records (see below)
+app.js              Router, views, demo adapter, Supabase adapter, admin
+assets/seed/        The 3 seed COA images (real documents)
+supabase/schema.sql Database tables + RLS policies + storage policies
+supabase/seed.sql   Production seed rows (run after uploading assets/seed/)
+tests/              Automated browser test script (Playwright)
+```
+
+## Seed data (real, not fabricated)
+
+The three starting records are the exact reports featured in PPC's published
+"How to Read a COA" educational piece, transcribed from the documents:
+1. Janoshik — Retatrutide 20 mg label → **22.59 mg, 99.535%** (Task #216, Aug 2026)
+2. Janoshik — Retatrutide 60 mg label → **64.59 mg, 99.823%** (Task #170026, Jun 2026)
+3. Accumark Labs — Retatrutide 10.0 mg label → **10.137 mg, 99.963%** (Oct 2026)
+
+Each record's detail page labels what came from the report, what the submitter
+provided, and what the reviewer did. No other records are invented.
+
+## Run locally
+
+No build step. Serve the folder (a plain `file://` open works for browsing,
+but file uploads need a server for IndexedDB in some browsers):
+
+```bash
+cd ppc-coa-database
+python3 -m http.server 8000
+# open http://localhost:8000
+```
+
+## SETUP — connect the live backend (one-time)
+
+1. **Create a Supabase project** at https://supabase.com (free tier).
+   Note the project URL and the **anon public key** (Settings → API).
+2. **Run the schema:** Supabase → SQL Editor → paste `supabase/schema.sql` → Run.
+3. **Upload seed files:** Storage → `coa-files` bucket → create a `seed/`
+   folder → upload the three files from `assets/seed/` with their exact names.
+4. **Run the seed rows:** SQL Editor → paste `supabase/seed.sql` → Run.
+5. **Add the first administrator:**
+   - Supabase → Authentication → Users → Add user (email + password).
+   - Copy the new user's UUID.
+   - SQL Editor: `insert into public.admins (id, email) values ('<UUID>', '<email>');`
+6. **Point the site at Supabase:** edit `config.js` — set `supabaseUrl` and
+   `supabaseAnonKey` (anon key only; **never** the service-role key).
+7. **Deploy:** see below. The demo banner disappears automatically once both
+   values are set.
+
+### Environment variables
+
+There is no server-side `.env` for this frontend. The only configuration is
+`config.js`. A placeholder copy is `config.example.js` (same file, empty
+values). Keep the **service-role key** out of the repo entirely — it is only
+ever needed inside the Supabase dashboard, never in client code.
+
+## Deploy to GitHub Pages
+
+1. Create a repo (e.g. `discoveranytime/ppc-coa`) and push this folder's
+   contents to the `main` branch.
+2. Repo → Settings → Pages → Source: **Deploy from a branch**, Branch:
+   `main`, Folder: `/ (root)`.
+3. The site appears at `https://<user>.github.io/ppc-coa/`.
+4. Verify: home loads, theme toggle persists, the 3 seed records appear,
+   a test submission lands in **Pending** (admin only), and the public browse
+   view does **not** show it until approved.
+
+## Admin workflow
+
+Admin → sign in (demo password in `config.js`; in production, Supabase Auth
+email/password). Click a pending row to inspect the document, correct metadata,
+and: **Approve & publish** · **Request corrections** (reason required) ·
+**Unpublish** (back to pending) · **Delete**. Every action is written to the
+audit trail, shown on the admin page.
+
+## Rate limiting & spam (practical notes)
+
+Supabase Auth has built-in rate limiting for sign-ins. For anonymous
+submissions, the practical guardrails in this build are: 10 MB file cap,
+type allowlist (PDF/PNG/JPEG), SHA-256 duplicate detection, and the
+pending-review gate itself (spam never reaches the public database).
+If abuse appears, add Supabase's CAPTCHA setting (Auth → Bot protection) or a
+Cloudflare Turnstile check in front of the submit form — both are one-setting
+changes, not rebuilds.
+
+## Test report
+
+See `TEST-REPORT.md` — what was run, what passed, what could not be run here
+(and the exact steps to finish those checks on the deployed site).
+
+## Known limitations
+
+- **Supabase project not yet created** — the site currently runs in demo mode
+  until the SETUP steps above are done. This is the one remaining blocker for
+  a shared, persistent database.
+- Supabase adapter code is complete but **untested against a live project**
+  (no project exists yet); demo-mode paths are fully tested.
+- Public file access for approved records uses time-limited signed URLs
+  (1 hour); the page re-signs on each visit, so links are not permanent.
+- No email notifications for new submissions yet (add a Supabase Edge
+  Function + Resend later if wanted).
+- No multi-file submissions per record (one document per record by design).
