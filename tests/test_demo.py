@@ -54,18 +54,22 @@ def main():
                   p.evaluate("document.documentElement.dataset.theme") == "light")
             p.click("#themeToggle")  # back to dark for later screenshots
 
-            # 3. Home stats are real (3 seed records, 1 compound, 2 labs)
+            # 3. Home stats are real (3 seeds + 93 vendor link records, 27 compounds, 3 labs)
             nums = p.evaluate("[...document.querySelectorAll('.stat .num')].map(e=>e.textContent.trim())")
-            check("home stats match seed data (3/1/2)", nums[:3] == ["3", "1", "2"], str(nums))
+            check("home stats match database (96/27/3)", nums[:3] == ["96", "27", "3"], str(nums))
 
             # 4. Browse: search + filter + sort
             p.goto(f"http://localhost:{PORT}/#/browse")
             p.wait_for_selector("#filt")
             p.fill('input[name="q"]', "janoshik")
-            p.wait_for_function("document.querySelectorAll('tbody tr').length === 2")
-            check("search 'janoshik' returns 2 records", True)
+            p.wait_for_function("document.querySelectorAll('tbody tr').length === 73")
+            check("search 'janoshik' returns 73 records (2 seeds + 71 links)", True)
             p.fill('input[name="q"]', "")
-            p.wait_for_function("document.querySelectorAll('tbody tr').length === 3")
+            p.wait_for_function("document.querySelectorAll('tbody tr').length === 96")
+            p.select_option('select[name="supplier"]', "ZLZ — Zhuzhou Lusong Zhongtuo")
+            p.wait_for_function("document.querySelectorAll('tbody tr').length === 15")
+            check("supplier filter ZLZ returns 15 records", True)
+            p.select_option('select[name="supplier"]', "")
             p.select_option('select[name="lab"]', "Accumark Labs")
             p.wait_for_function("document.querySelectorAll('tbody tr').length === 1")
             check("lab filter narrows to 1 record", True)
@@ -120,7 +124,7 @@ def main():
             p.goto(f"http://localhost:{PORT}/#/browse")
             p.wait_for_selector("#filt")
             cnt = p.evaluate("document.querySelectorAll('tbody tr').length")
-            check("new submission NOT in public browse (pending gate)", cnt == 3, f"rows={cnt}")
+            check("new submission NOT in public browse (pending gate)", cnt == 96, f"rows={cnt}")
 
             # 10. Admin protection: unsigned-out admin page shows sign-in
             p.goto(f"http://localhost:{PORT}/#/admin")
@@ -145,7 +149,15 @@ def main():
             p.goto(f"http://localhost:{PORT}/#/browse")
             p.wait_for_selector("#filt")
             cnt = p.evaluate("document.querySelectorAll('tbody tr').length")
-            check("approved record appears in public browse", cnt == 4, f"rows={cnt}")
+            check("approved record appears in public browse", cnt == 97, f"rows={cnt}")
+
+            # 11b. Link record detail: no invented results, source link present
+            p.goto(f"http://localhost:{PORT}/#/record/link-001")
+            p.wait_for_selector(".detail-grid")
+            lbody = p.evaluate("document.body.innerText")
+            lhref = p.evaluate("document.querySelector('.btn[href^=\"https://coas.freedomdiagnosticstesting.com\"]') ? document.querySelector('.btn[href^=\"https://coas.freedomdiagnosticstesting.com\"]').href : ''")
+            check("link record shows not-transcribed notice + source link",
+                  "Not transcribed" in lbody and "Thri2609080995.pdf" in lhref, lhref)
 
             # 12. Responsive: no horizontal overflow at 5 widths
             for w in (360, 390, 768, 1024, 1440):

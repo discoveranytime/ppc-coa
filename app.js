@@ -89,13 +89,15 @@ const idb = {
 const LS_REC = "ppc-demo-records-v1", LS_AUDIT = "ppc-demo-audit-v1";
 const DemoDB = {
   load() {
-    try {
-      const raw = localStorage.getItem(LS_REC);
-      if (raw) return JSON.parse(raw);
-    } catch {}
+    let stored = [];
+    try { stored = JSON.parse(localStorage.getItem(LS_REC) || "[]"); } catch {}
     const seeds = (window.PPC_SEED || []).map((s) => ({ id: "seed-" + s.ref, checksum: "", fileSize: 0, rejectReason: "", ...s }));
-    localStorage.setItem(LS_REC, JSON.stringify(seeds));
-    return seeds;
+    const links = window.PPC_LINKS || [];
+    const have = new Set(stored.map((r) => r.id));
+    const merged = [...stored];
+    for (const r of [...seeds, ...links]) if (!have.has(r.id)) { merged.push(r); have.add(r.id); }
+    localStorage.setItem(LS_REC, JSON.stringify(merged));
+    return merged;
   },
   save(records) { localStorage.setItem(LS_REC, JSON.stringify(records)); },
   auditLoad() { try { return JSON.parse(localStorage.getItem(LS_AUDIT) || "[]"); } catch { return []; } },
@@ -167,7 +169,7 @@ const SupabaseDB = {
              fileType: row.file_type, fileSize: row.file_size, submitterName: row.submitter_name,
              reviewNotes: row.review_notes, rejectReason: row.reject_reason,
              independentlyConfirmed: row.independently_confirmed, confirmationNote: row.confirmation_note,
-             testDate: row.test_date };
+             testDate: row.test_date, sourceUrl: row.source_url || "", recordType: row.record_type || "document" };
   },
   async listPublic() {
     const rows = await SupabaseDB.req("coa_records?status=eq.approved&order=submitted_at.desc");
@@ -389,9 +391,10 @@ async function viewRecord(id) {
     $app.innerHTML = `<div class="empty panel"><h2 style="margin-top:0">Record not found</h2><p>This record may be pending review, removed, or the link may be wrong. <a href="#/browse">Browse approved records</a></p></div>`;
     return;
   }
-  const url = await DB.fileUrl(rec).catch(() => "");
+  const url = rec.sourceUrl ? "" : await DB.fileUrl(rec).catch(() => "");
   const isPdf = rec.fileType === "application/pdf";
   const results = rec.results || {};
+  const tx = (v) => esc(v || (rec.recordType === "link" ? "Not transcribed — see original report" : "Not stated"));
   $app.innerHTML = `
   <p class="small"><a href="#/browse">← Back to browse</a></p>
   <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
@@ -405,12 +408,12 @@ async function viewRecord(id) {
         <dt>Compound</dt><dd>${esc(rec.compound)}</dd>
         <dt>Laboratory</dt><dd>${esc(rec.lab)}</dd>
         <dt>Testing date</dt><dd>${fmtDate(rec.testDate)}</dd>
-        <dt>Batch / lot</dt><dd>${esc(rec.batch || "Not stated on the report")}</dd>
+        <dt>Batch / lot</dt><dd>${esc(rec.batch || (rec.recordType === "link" ? "Not recorded — see original report" : "Not stated on the report"))}</dd>
         <dt>Reported strength</dt><dd>${esc(rec.labelStrength || "Not stated")}</dd>
-        <dt>Identity</dt><dd>${esc(results.identity || "Not stated")}</dd>
-        <dt>Measured quantity</dt><dd>${esc(results.measuredQuantity || "Not stated")}</dd>
-        <dt>Purity</dt><dd>${esc(results.purity || "Not stated")}</dd>
-        <dt>Other report content</dt><dd>${esc(results.other || "—")}</dd>
+        <dt>Identity</dt><dd>${tx(results.identity)}</dd>
+        <dt>Measured quantity</dt><dd>${tx(results.measuredQuantity)}</dd>
+        <dt>Purity</dt><dd>${tx(results.purity)}</dd>
+        <dt>Other report content</dt><dd>${tx(results.other)}</dd>
         <dt>Tests performed</dt><dd>${(rec.testTypes || []).map(esc).join(", ") || "Not stated"}</dd>
       </dl>
       <p class="prov">Provided by the submitter</p>
@@ -427,12 +430,15 @@ async function viewRecord(id) {
       </dl>
     </div>
     <div class="panel">
-      <h3 style="margin-top:0">Original document</h3>
-      <p class="small muted" style="margin-top:0">The original uploaded file, unedited. Transcribed values above are a convenience copy — the document itself is the source of truth.</p>
+      <h3 style="margin-top:0">${rec.sourceUrl ? "Original report (external link)" : "Original document"}</h3>
+      ${rec.sourceUrl ? `<div class="warn-box"><strong>Link record.</strong> This entry points to the laboratory's own report page. Results have not been transcribed yet — open the original to read them. Nothing on this record has been verified beyond the link itself.</div>
+      <div class="btn-row"><a class="btn" href="${esc(rec.sourceUrl)}" target="_blank" rel="noopener">View original report at ${esc(rec.lab)}</a></div>
+      <p class="small muted" style="margin-top:14px;overflow-wrap:anywhere">Source: ${esc(rec.sourceUrl)}</p>`
+      : `<p class="small muted" style="margin-top:0">The original uploaded file, unedited. Transcribed values above are a convenience copy — the document itself is the source of truth.</p>
       ${url ? `<div class="doc-view">${isPdf ? `<iframe src="${esc(url)}" title="COA document viewer"></iframe>` : `<img src="${esc(url)}" alt="COA document for ${esc(rec.compound)}">`}</div>
       <div class="btn-row"><a class="btn" href="${esc(url)}" target="_blank" rel="noopener">Open original</a>
       <a class="btn secondary" href="${esc(url)}" download="${esc(rec.fileName)}">Download</a></div>`
-      : `<div class="warn-box">The document file is not available in this session (demo-mode files live in the browser that uploaded them). Metadata above is unchanged.</div>`}
+      : `<div class="warn-box">The document file is not available in this session (demo-mode files live in the browser that uploaded them). Metadata above is unchanged.</div>`}`}
       <p class="small muted" style="margin-top:14px">If anything on this record looks wrong, contact a PPC administrator with the reference number <strong>${esc(rec.ref)}</strong>.</p>
     </div>
   </div>`;

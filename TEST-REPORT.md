@@ -3,7 +3,20 @@
 Run: 2026-10-24 · Runner: `python3 tests/test_demo.py` (Playwright, bundled Chromium)
 Mode tested: **demo mode** (no Supabase project connected yet — see "Not yet testable").
 
-## Automated results: 29/29 passed
+## 2026-10-24 evening — vendor link import: 31/31 passed
+
+- 93 link records imported (ERP 11, HYB 10, HPT 17, JEEP 34, QST 6, ZLZ 15);
+  home stats now read 96 approved / 27 compounds / 3 labs, all computed.
+- All 93 source URLs checked live before import: 93/93 HTTP 200, no dead links.
+- Supplier filter (ZLZ → 15), Janoshik search (73), link detail page
+  (not-transcribed notice + working source link) all verified in the suite.
+- One supplied link skipped as a duplicate: ERP Janoshik 170026 already
+  exists as seed record PPC-2026-0002.
+- Honesty check: no result values were invented for link records — every
+  result field reads "Not transcribed — see original report" until someone
+  actually reads and transcribes the document.
+
+## Automated results: 31/31 passed
 
 | Area | Checks | Result |
 |---|---|---|
