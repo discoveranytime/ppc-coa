@@ -701,12 +701,16 @@ router();
     dots = Array.from({ length: 140 }, () => ({
       x: Math.random() * cv.width, y: Math.random() * cv.height,
       r: 1.4 + Math.random() * 2.2, c: COLORS[(Math.random() * 3) | 0],
-      p: Math.random() * Math.PI * 2, s: 0.3 + Math.random() * 0.7
+      p: Math.random() * Math.PI * 2, s: 0.3 + Math.random() * 0.7,
+      vx: (Math.random() - 0.5) * 0.16, vy: (Math.random() - 0.5) * 0.16
     }));
   }
   function draw(t) {
     ctx.clearRect(0, 0, cv.width, cv.height);
     for (const d of dots) {
+      d.x += d.vx; d.y += d.vy;
+      if (d.x < -10) d.x += cv.width + 20; if (d.x > cv.width + 10) d.x -= cv.width + 20;
+      if (d.y < -10) d.y += cv.height + 20; if (d.y > cv.height + 10) d.y -= cv.height + 20;
       ctx.globalAlpha = 0.30 + 0.35 * (0.5 + 0.5 * Math.sin((t / 900) * d.s + d.p));
       ctx.fillStyle = d.c;
       ctx.beginPath(); ctx.arc(d.x, d.y, d.r, 0, 7); ctx.fill();
