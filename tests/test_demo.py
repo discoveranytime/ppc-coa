@@ -151,13 +151,17 @@ def main():
             cnt = p.evaluate("document.querySelectorAll('tbody tr').length")
             check("approved record appears in public browse", cnt == 97, f"rows={cnt}")
 
-            # 11b. Link record detail: no invented results, source link present
+            # 11b. Link record detail: vendor at top, clickable side preview, no invented results
             p.goto(f"http://localhost:{PORT}/#/record/link-001")
             p.wait_for_selector(".detail-grid")
             lbody = p.evaluate("document.body.innerText")
-            lhref = p.evaluate("document.querySelector('.btn[href^=\"https://coas.freedomdiagnosticstesting.com\"]') ? document.querySelector('.btn[href^=\"https://coas.freedomdiagnosticstesting.com\"]').href : ''")
-            check("link record shows not-transcribed notice + source link",
-                  "Not transcribed" in lbody and "Thri2609080995.pdf" in lhref, lhref)
+            lhref = p.evaluate("document.querySelector('.preview-link') ? document.querySelector('.preview-link').href : ''")
+            limg = p.evaluate("document.querySelector('.preview-link img') ? document.querySelector('.preview-link img').getAttribute('src') : ''")
+            check("link record shows vendor at top + clickable preview + not-transcribed notice",
+                  "Vendor: ERP Shanghai Peptide Biotechnology Co., Ltd." in lbody
+                  and "Thri2609080995.pdf" in lhref
+                  and limg == "assets/link-previews/link-001.jpg"
+                  and "Not transcribed" in lbody, f"{lhref} | {limg}")
 
             # 12. Responsive: no horizontal overflow at 5 widths
             for w in (360, 390, 768, 1024, 1440):

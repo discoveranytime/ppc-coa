@@ -400,6 +400,7 @@ async function viewRecord(id) {
   <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
     <h1 style="margin:0">${esc(rec.compound)}</h1>${statusBadge(rec)}
   </div>
+  ${rec.sourceUrl ? `<p class="vendor-top">Vendor: ${esc(rec.supplier)}</p>` : ""}
   <p class="lede" style="margin-top:8px">Ref ${esc(rec.ref)} · ${esc(rec.lab)} · ${rec.labelStrength ? "Label strength " + esc(rec.labelStrength) + " · " : ""}Uploaded ${fmtDate(rec.submittedAt)}</p>
   <div class="detail-grid">
     <div class="panel">
@@ -430,9 +431,11 @@ async function viewRecord(id) {
       </dl>
     </div>
     <div class="panel">
-      <h3 style="margin-top:0">${rec.sourceUrl ? "Original report (external link)" : "Original document"}</h3>
-      ${rec.sourceUrl ? `<div class="warn-box"><strong>Link record.</strong> This entry points to the laboratory's own report page. Results have not been transcribed yet — open the original to read them. Nothing on this record has been verified beyond the link itself.</div>
-      <div class="btn-row"><a class="btn" href="${esc(rec.sourceUrl)}" target="_blank" rel="noopener">View original report at ${esc(rec.lab)}</a></div>
+      <h3 style="margin-top:0">${rec.sourceUrl ? "Original report — preview" : "Original document"}</h3>
+      ${rec.sourceUrl ? `<div class="warn-box"><strong>Link record.</strong> Results have not been transcribed yet — open the original to read them. Nothing on this record has been verified beyond the link itself.</div>
+      ${(window.PPC_PREVIEWS || {})[rec.id] ? `<a class="preview-link" href="${esc(rec.sourceUrl)}" target="_blank" rel="noopener" title="Open the full original report at ${esc(rec.lab)}"><img src="assets/link-previews/${esc(rec.id)}.jpg" alt="Preview of the original ${esc(rec.compound)} report from ${esc(rec.lab)} — click to open the full report"></a>
+      <p class="small muted">Click the preview to open the full original report at ${esc(rec.lab)}.</p>`
+      : `<div class="btn-row"><a class="btn" href="${esc(rec.sourceUrl)}" target="_blank" rel="noopener">View original report at ${esc(rec.lab)}</a></div>`}
       <p class="small muted" style="margin-top:14px;overflow-wrap:anywhere">Source: ${esc(rec.sourceUrl)}</p>`
       : `<p class="small muted" style="margin-top:0">The original uploaded file, unedited. Transcribed values above are a convenience copy — the document itself is the source of truth.</p>
       ${url ? `<div class="doc-view">${isPdf ? `<iframe src="${esc(url)}" title="COA document viewer"></iframe>` : `<img src="${esc(url)}" alt="COA document for ${esc(rec.compound)}">`}</div>

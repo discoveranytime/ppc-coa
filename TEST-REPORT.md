@@ -3,6 +3,14 @@
 Run: 2026-10-24 · Runner: `python3 tests/test_demo.py` (Playwright, bundled Chromium)
 Mode tested: **demo mode** (no Supabase project connected yet — see "Not yet testable").
 
+## 2026-10-25 — link-record previews: 31/31 passed
+
+- All 93 first-page previews fetched (Janoshik report scans + Freedom PDF
+  page 1 renders), 9.4 MB under `assets/link-previews/`.
+- Detail page now shows the vendor name at the top and the preview as a
+  clickable side panel linking to the original report; test asserts the
+  vendor line, the preview image path, and the source URL together.
+
 ## 2026-10-24 evening — vendor link import: 31/31 passed
 
 - 93 link records imported (ERP 11, HYB 10, HPT 17, JEEP 34, QST 6, ZLZ 15);
