@@ -3,6 +3,15 @@
 Run: 2026-10-24 · Runner: `python3 tests/test_demo.py` (Playwright, bundled Chromium)
 Mode tested: **demo mode** (no Supabase project connected yet — see "Not yet testable").
 
+## 2026-10-25 — uniform tiles + pronounced watermark: 32/32 passed
+
+- All tiles (stat tiles, step tiles, panels, browse table wrap) now share
+  one treatment: 14px radius, gradient border, soft amber/cyan glow
+  (alpha 0.08/0.06 — slight, not distracting).
+- PUSHING P watermark opacity raised 0.055 → 0.14 (dark) / 0.05 → 0.12
+  (light), measured via computed style in the suite.
+- Local-only: shown to Victor before any push, per his direction.
+
 ## 2026-10-25 — link-record previews: 31/31 passed
 
 - All 93 first-page previews fetched (Janoshik report scans + Freedom PDF

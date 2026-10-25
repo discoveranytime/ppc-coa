@@ -57,6 +57,11 @@ def main():
             # 3. Home stats are real (3 seeds + 93 vendor link records, 27 compounds, 3 labs)
             nums = p.evaluate("[...document.querySelectorAll('.stat .num')].map(e=>e.textContent.trim())")
             check("home stats match database (96/27/3)", nums[:3] == ["96", "27", "3"], str(nums))
+            # 3b. Uniform tile treatment: gradient border + subtle glow; pronounced watermark
+            wm = p.evaluate("getComputedStyle(document.getElementById('bgtext')).opacity")
+            glow = p.evaluate("getComputedStyle(document.querySelector('.stat')).boxShadow")
+            check("watermark opacity raised (0.14) + stat tile carries color glow",
+                  wm == "0.14" and "251, 146, 60" in glow and "34, 211, 238" in glow, f"opacity={wm} shadow={glow}")
 
             # 4. Browse: search + filter + sort
             p.goto(f"http://localhost:{PORT}/#/browse")
